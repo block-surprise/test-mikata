@@ -2,185 +2,194 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>テストの味方 - 計画的な勉強をサポート</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>テストの味方</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #fb923c;
-            --bg: #fff7ed;
-            --card: #ffffff;
-            --text: #431407;
-            --accent: #22c55e;
-        }
-
-        body { margin: 0; font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 50px; }
+        :root { --primary: #fb923c; --bg: #fff7ed; --card: #ffffff; --text: #431407; --accent: #22c55e; }
+        body { margin: 0; font-family: sans-serif; background: var(--bg); color: var(--text); padding-bottom: 100px; }
         .hidden { display: none !important; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; }
+        main { padding: 15px; max-width: 500px; margin: 0 auto; box-sizing: border-box; }
 
-        header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(251, 146, 60, 0.3); }
-        h1 { margin: 0; font-size: 1.3rem; letter-spacing: 2px; }
+        /* ビジュアル強化：円グラフエリア */
+        .visual-summary { background: white; border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .chart-container { position: relative; width: 150px; height: 150px; margin: 0 auto; }
+        .chart-svg { transform: rotate(-90deg); }
+        .chart-bg { fill: none; stroke: #fed7aa; stroke-width: 12; }
+        .chart-fill { fill: none; stroke: var(--accent); stroke-width: 12; stroke-linecap: round; transition: stroke-dasharray 1s; }
+        .chart-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: bold; }
 
-        main { padding: 15px; max-width: 500px; margin: 0 auto; }
+        /* ストイックモード（タイマー） */
+        .stoic-box { background: #431407; color: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; text-align: center; }
+        .timer-display { font-family: monospace; font-size: 1.8rem; margin: 10px 0; }
+        .stoic-btn { background: #fb923c; border: none; padding: 10px 20px; border-radius: 20px; color: white; font-weight: bold; }
+        .stoic-btn.active { background: #ef4444; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
-        .summary-box { 
-            text-align: center; 
-            background: linear-gradient(135deg, #fb923c, #f97316); 
-            color: white; 
-            border-radius: 15px; 
-            padding: 20px; 
-            margin-bottom: 20px; 
-            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
-        }
-
-        .big-number { font-size: 2.8rem; font-weight: bold; margin: 5px 0; }
-        .card { background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid #ffedd5; }
-        
-        .work-item { border-left: 4px solid var(--primary); padding-left: 12px; margin-bottom: 20px; }
-        .work-name { font-weight: bold; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
-        
-        .progress-bar { height: 8px; background: #fed7aa; border-radius: 4px; overflow: hidden; margin: 10px 0; }
-        .progress-fill { height: 100%; background: var(--accent); transition: width 0.5s; }
-        
-        .norma-badge { background: #ffedd5; color: #ea580c; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; border: 1px solid #fed7aa; }
-
-        .input-group { display: flex; gap: 8px; margin-top: 10px; }
-        input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 16px; outline: none; }
-        input:focus { border-color: var(--primary); }
-        
-        button { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .add-btn { width: 100%; margin-top: 10px; background: #431407; }
-        .reset-btn { background: #94a3b8; width: 100%; margin-top: 30px; font-size: 0.8rem; opacity: 0.6; }
+        /* カード系 */
+        .card { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .input-group { display: flex; gap: 5px; margin-top: 10px; }
+        input { padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 16px; box-sizing: border-box; min-width: 0; }
+        button { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; padding: 10px; }
+        .color-dot { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 3px solid #eee; }
+        .color-dot.selected { border-color: #431407; }
     </style>
 </head>
 <body>
 
-<header>
-    <h1><i class="fas fa-pencil-alt"></i> テストの味方</h1>
-</header>
+<header><h1><i class="fas fa-crown"></i> テストの味方</h1></header>
 
 <main>
     <div id="main-screen" class="hidden">
-        <div class="summary-box">
-            <div id="display-test-name" style="opacity: 0.9;"></div>
-            <div id="display-days" style="font-weight: bold; font-size: 1.2rem; margin-top: 5px;"></div>
-            <div style="margin-top: 15px; font-size: 0.8rem;">今日の合計ノルマ</div>
-            <div class="big-number"><span id="total-norma">0</span> <span style="font-size: 1rem;">ページ</span></div>
+        <div class="visual-summary">
+            <div id="display-test-name" style="font-size: 0.8rem; color: #64748b;"></div>
+            <div class="chart-container">
+                <svg class="chart-svg" viewBox="0 0 100 100">
+                    <circle class="chart-bg" cx="50" cy="50" r="40"></circle>
+                    <circle id="chart-fill" class="chart-fill" cx="50" cy="50" r="40" stroke-dasharray="0 251"></circle>
+                </svg>
+                <div class="chart-text"><span id="total-percent">0</span>%</div>
+            </div>
+            <p style="margin: 10px 0 0 0; font-size: 0.9rem;">今日の残り: <span id="total-norma" style="font-weight:bold; color:var(--primary);">0</span> ページ</p>
+        </div>
+
+        <div class="stoic-box">
+            <div style="font-size: 0.8rem;"><i class="fas fa-lock"></i> スマホ封印タイマー</div>
+            <div id="timer" class="timer-display">00:00:00</div>
+            <button id="stoic-toggle" class="stoic-btn" onclick="toggleStoic()">修行開始</button>
+            <div id="stoic-msg" style="font-size: 0.7rem; margin-top: 8px; color: #fed7aa;"></div>
         </div>
 
         <div id="work-list"></div>
 
         <div class="card">
-            <h3 style="margin-top:0; font-size: 1rem;">教材を追加</h3>
-            <div class="input-group">
-                <input type="text" id="work-name" placeholder="例：数学ワーク">
-                <input type="number" id="work-pages" placeholder="全ページ数">
+            <div style="display:flex; gap:10px; margin-bottom:10px;" id="color-selector">
+                <div class="color-dot selected" style="background:#fb923c" data-color="#fb923c"></div>
+                <div class="color-dot" style="background:#3b82f6" data-color="#3b82f6"></div>
+                <div class="color-dot" style="background:#a855f7" data-color="#a855f7"></div>
+                <div class="color-dot" style="background:#22c55e" data-color="#22c55e"></div>
             </div>
-            <button class="add-btn" onclick="addWork()">追加する</button>
-            <button class="reset-btn" onclick="resetPlan()">すべての計画をリセット</button>
+            <div class="input-group">
+                <input type="text" id="work-name" style="flex:3" placeholder="教科名">
+                <input type="number" id="work-pages" style="flex:1" placeholder="P数">
+                <button onclick="addWork()" style="background:var(--primary); color:white;">追加</button>
+            </div>
         </div>
     </div>
 
     <div id="setup-screen" class="hidden">
         <div class="card">
-            <h2>テスト計画を作ろう！</h2>
-            <p style="font-size: 0.8rem; color: #64748b;">まずはテスト名と日付を入力してね。</p>
-            <input type="text" id="setup-test-name" placeholder="例：2学期末テスト">
-            <input type="date" id="setup-date" style="display: block; width: 100%; box-sizing: border-box; margin-top: 10px;">
-            <button style="width: 100%; margin-top: 20px; padding: 15px;" onclick="initPlan()">作成開始！</button>
+            <h2>目標をセット</h2>
+            <input type="text" id="set-name" style="width:100%; margin-bottom:10px;" placeholder="テスト名">
+            <input type="date" id="set-date" style="width:100%; margin-bottom:20px;">
+            <button onclick="init()" style="width:100%; background:var(--primary); color:white; padding:15px;">作成！</button>
         </div>
     </div>
 </main>
 
 <script>
-    let plan = JSON.parse(localStorage.getItem('test_mikata_data'));
+    let plan = JSON.parse(localStorage.getItem('mikata_v4'));
+    let selectedColor = "#fb923c";
+    let timerInterval;
+    let seconds = 0;
+    let isStoic = false;
 
-    function initPlan() {
-        const name = document.getElementById('setup-test-name').value;
-        const date = document.getElementById('setup-date').value;
-        if(!name || !date) return alert("テスト名と日付を教えてね！");
+    // カラー選択
+    document.querySelectorAll('.color-dot').forEach(d => d.onclick = (e) => {
+        document.querySelectorAll('.color-dot').forEach(x => x.classList.remove('selected'));
+        e.target.classList.add('selected');
+        selectedColor = e.target.dataset.color;
+    });
 
-        plan = { testName: name, endDate: new Date(date).getTime(), works: [] };
+    // ストイックタイマー
+    function toggleStoic() {
+        isStoic = !isStoic;
+        const btn = document.getElementById('stoic-toggle');
+        const msg = document.getElementById('stoic-msg');
+        if(isStoic) {
+            btn.innerText = "集中解除（記録）";
+            btn.classList.add('active');
+            msg.innerText = "※画面を閉じると修行失敗です！";
+            timerInterval = setInterval(() => {
+                seconds++;
+                updateTimerDisplay();
+            }, 1000);
+        } else {
+            clearInterval(timerInterval);
+            btn.innerText = "修行開始";
+            btn.classList.remove('active');
+            msg.innerText = `前回: ${Math.floor(seconds/60)}分 集中できました！`;
+            seconds = 0;
+            updateTimerDisplay();
+        }
+    }
+
+    function updateTimerDisplay() {
+        const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+        const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+        const s = String(seconds % 60).padStart(2, '0');
+        document.getElementById('timer').innerText = `${h}:${m}:${s}`;
+    }
+
+    // 基本ロジック
+    function init() {
+        const n = document.getElementById('set-name').value;
+        const d = document.getElementById('set-date').value;
+        if(!n || !d) return;
+        plan = { testName: n, endDate: new Date(d).getTime(), works: [] };
         save();
     }
 
     function addWork() {
-        const name = document.getElementById('work-name').value;
-        const pages = parseInt(document.getElementById('work-pages').value);
-        if(!name || !pages) return;
-
-        plan.works.push({ id: Date.now(), name: name, totalPages: pages, donePages: 0 });
-        document.getElementById('work-name').value = "";
-        document.getElementById('work-pages').value = "";
+        const n = document.getElementById('work-name').value;
+        const p = parseInt(document.getElementById('work-pages').value);
+        if(!n || !p) return;
+        plan.works.push({ id: Date.now(), name: n, totalPages: p, donePages: 0, color: selectedColor });
         save();
     }
 
     function updateProgress(id) {
-        const input = document.getElementById(`input-${id}`);
-        const value = parseInt(input.value);
-        if(isNaN(value)) return;
-
+        const val = parseInt(document.getElementById(`in-${id}`).value);
         const work = plan.works.find(w => w.id === id);
-        if(work) {
-            work.donePages += value;
-            if(work.donePages > work.totalPages) work.donePages = work.totalPages;
-            input.value = "";
+        if(work && !isNaN(val)) {
+            work.donePages = Math.min(work.totalPages, work.donePages + val);
             save();
         }
     }
 
     function save() {
-        localStorage.setItem('test_mikata_data', JSON.stringify(plan));
+        localStorage.setItem('mikata_v4', JSON.stringify(plan));
         render();
     }
 
     function render() {
-        if(!plan) {
-            document.getElementById('setup-screen').classList.remove('hidden');
-            document.getElementById('main-screen').classList.add('hidden');
-            return;
-        }
+        if(!plan) { document.getElementById('setup-screen').classList.remove('hidden'); return; }
         document.getElementById('setup-screen').classList.add('hidden');
         document.getElementById('main-screen').classList.remove('hidden');
 
-        const today = new Date(); today.setHours(0,0,0,0);
-        const diffDays = Math.ceil((plan.endDate - today.getTime()) / (1000 * 60 * 60 * 24));
-        
+        const diff = Math.ceil((plan.endDate - new Date().setHours(0,0,0,0)) / 86400000);
         document.getElementById('display-test-name').innerText = plan.testName;
-        document.getElementById('display-days').innerText = diffDays < 0 ? "テストお疲れ様！" : (diffDays === 0 ? "今日はテスト当日！" : `本番まであと ${diffDays} 日`);
-
-        let totalNorma = 0;
-        const container = document.getElementById('work-list');
-        container.innerHTML = plan.works.map(w => {
-            const remaining = w.totalPages - w.donePages;
-            const norma = diffDays > 0 ? Math.ceil(remaining / diffDays) : remaining;
-            const safeNorma = Math.max(0, norma);
-            totalNorma += safeNorma;
-            const percent = (w.donePages / w.totalPages) * 100;
-
-            return `
-                <div class="card">
-                    <div class="work-item">
-                        <div class="work-name">
-                            <span>${w.name}</span>
-                            <span class="norma-badge">今日: ${safeNorma}P</span>
-                        </div>
-                        <div class="progress-bar"><div class="progress-fill" style="width: ${percent}%"></div></div>
-                        <div style="font-size: 0.7rem; color: #64748b; text-align: right;">あと ${remaining}P / 全 ${w.totalPages}P</div>
-                    </div>
-                    <div class="input-group">
-                        <input type="number" id="input-${w.id}" placeholder="やったP数">
-                        <button onclick="updateProgress(${w.id})">記録</button>
-                    </div>
+        
+        let tDone = 0, tTotal = 0, tNorma = 0;
+        document.getElementById('work-list').innerHTML = plan.works.map(w => {
+            const rem = w.totalPages - w.donePages;
+            const n = Math.max(0, diff > 0 ? Math.ceil(rem / diff) : rem);
+            tDone += w.donePages; tTotal += w.totalPages; tNorma += n;
+            return `<div class="card">
+                <div style="font-weight:bold; border-left:4px solid ${w.color}; padding-left:8px; margin-bottom:10px;">${w.name} (残${rem}P)</div>
+                <div class="input-group">
+                    <input type="number" id="in-${w.id}" placeholder="やったP" style="flex:1">
+                    <button onclick="updateProgress(${w.id})" style="background:${w.color}; color:white;">記録</button>
                 </div>
-            `;
+            </div>`;
         }).join('');
-        document.getElementById('total-norma').innerText = totalNorma;
-    }
 
-    function resetPlan() {
-        if(confirm("本当にリセットしていい？")) { localStorage.removeItem('test_mikata_data'); plan = null; render(); }
+        document.getElementById('total-norma').innerText = tNorma;
+        const per = tTotal > 0 ? Math.floor((tDone / tTotal) * 100) : 0;
+        document.getElementById('total-percent').innerText = per;
+        document.getElementById('chart-fill').style.strokeDasharray = `${(per * 251) / 100} 251`;
     }
-
     render();
 </script>
 </body>
