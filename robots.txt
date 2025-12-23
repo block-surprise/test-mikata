@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ad-hub.f5.si/sitemap2.xml
+Sitemap: https://test-mikata.ad-hub.f5.si/sitemap.xml
