@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テストの味方 - 計画的な勉強をサポート</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #fb923c;
+            --bg: #fff7ed;
+            --card: #ffffff;
+            --text: #431407;
+            --accent: #22c55e;
+        }
+
+        body { margin: 0; font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 50px; }
+        .hidden { display: none !important; }
+
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(251, 146, 60, 0.3); }
+        h1 { margin: 0; font-size: 1.3rem; letter-spacing: 2px; }
+
+        main { padding: 15px; max-width: 500px; margin: 0 auto; }
+
+        .summary-box { 
+            text-align: center; 
+            background: linear-gradient(135deg, #fb923c, #f97316); 
+            color: white; 
+            border-radius: 15px; 
+            padding: 20px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+        }
+
+        .big-number { font-size: 2.8rem; font-weight: bold; margin: 5px 0; }
+        .card { background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid #ffedd5; }
+        
+        .work-item { border-left: 4px solid var(--primary); padding-left: 12px; margin-bottom: 20px; }
+        .work-name { font-weight: bold; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        
+        .progress-bar { height: 8px; background: #fed7aa; border-radius: 4px; overflow: hidden; margin: 10px 0; }
+        .progress-fill { height: 100%; background: var(--accent); transition: width 0.5s; }
+        
+        .norma-badge { background: #ffedd5; color: #ea580c; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; border: 1px solid #fed7aa; }
+
+        .input-group { display: flex; gap: 8px; margin-top: 10px; }
+        input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 16px; outline: none; }
+        input:focus { border-color: var(--primary); }
+        
+        button { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .add-btn { width: 100%; margin-top: 10px; background: #431407; }
+        .reset-btn { background: #94a3b8; width: 100%; margin-top: 30px; font-size: 0.8rem; opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1><i class="fas fa-pencil-alt"></i> テストの味方</h1>
+</header>
+
+<main>
+    <div id="main-screen" class="hidden">
+        <div class="summary-box">
+            <div id="display-test-name" style="opacity: 0.9;"></div>
+            <div id="display-days" style="font-weight: bold; font-size: 1.2rem; margin-top: 5px;"></div>
+            <div style="margin-top: 15px; font-size: 0.8rem;">今日の合計ノルマ</div>
+            <div class="big-number"><span id="total-norma">0</span> <span style="font-size: 1rem;">ページ</span></div>
+        </div>
+
+        <div id="work-list"></div>
+
+        <div class="card">
+            <h3 style="margin-top:0; font-size: 1rem;">教材を追加</h3>
+            <div class="input-group">
+                <input type="text" id="work-name" placeholder="例：数学ワーク">
+                <input type="number" id="work-pages" placeholder="全ページ数">
+            </div>
+            <button class="add-btn" onclick="addWork()">追加する</button>
+            <button class="reset-btn" onclick="resetPlan()">すべての計画をリセット</button>
+        </div>
+    </div>
+
+    <div id="setup-screen" class="hidden">
+        <div class="card">
+            <h2>テスト計画を作ろう！</h2>
+            <p style="font-size: 0.8rem; color: #64748b;">まずはテスト名と日付を入力してね。</p>
+            <input type="text" id="setup-test-name" placeholder="例：2学期末テスト">
+            <input type="date" id="setup-date" style="display: block; width: 100%; box-sizing: border-box; margin-top: 10px;">
+            <button style="width: 100%; margin-top: 20px; padding: 15px;" onclick="initPlan()">作成開始！</button>
+        </div>
+    </div>
+</main>
+
+<script>
+    let plan = JSON.parse(localStorage.getItem('test_mikata_data'));
+
+    function initPlan() {
+        const name = document.getElementById('setup-test-name').value;
+        const date = document.getElementById('setup-date').value;
+        if(!name || !date) return alert("テスト名と日付を教えてね！");
+
+        plan = { testName: name, endDate: new Date(date).getTime(), works: [] };
+        save();
+    }
+
+    function addWork() {
+        const name = document.getElementById('work-name').value;
+        const pages = parseInt(document.getElementById('work-pages').value);
+        if(!name || !pages) return;
+
+        plan.works.push({ id: Date.now(), name: name, totalPages: pages, donePages: 0 });
+        document.getElementById('work-name').value = "";
+        document.getElementById('work-pages').value = "";
+        save();
+    }
+
+    function updateProgress(id) {
+        const input = document.getElementById(`input-${id}`);
+        const value = parseInt(input.value);
+        if(isNaN(value)) return;
+
+        const work = plan.works.find(w => w.id === id);
+        if(work) {
+            work.donePages += value;
+            if(work.donePages > work.totalPages) work.donePages = work.totalPages;
+            input.value = "";
+            save();
+        }
+    }
+
+    function save() {
+        localStorage.setItem('test_mikata_data', JSON.stringify(plan));
+        render();
+    }
+
+    function render() {
+        if(!plan) {
+            document.getElementById('setup-screen').classList.remove('hidden');
+            document.getElementById('main-screen').classList.add('hidden');
+            return;
+        }
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('main-screen').classList.remove('hidden');
+
+        const today = new Date(); today.setHours(0,0,0,0);
+        const diffDays = Math.ceil((plan.endDate - today.getTime()) / (1000 * 60 * 60 * 24));
+        
+        document.getElementById('display-test-name').innerText = plan.testName;
+        document.getElementById('display-days').innerText = diffDays < 0 ? "テストお疲れ様！" : (diffDays === 0 ? "今日はテスト当日！" : `本番まであと ${diffDays} 日`);
+
+        let totalNorma = 0;
+        const container = document.getElementById('work-list');
+        container.innerHTML = plan.works.map(w => {
+            const remaining = w.totalPages - w.donePages;
+            const norma = diffDays > 0 ? Math.ceil(remaining / diffDays) : remaining;
+            const safeNorma = Math.max(0, norma);
+            totalNorma += safeNorma;
+            const percent = (w.donePages / w.totalPages) * 100;
+
+            return `
+                <div class="card">
+                    <div class="work-item">
+                        <div class="work-name">
+                            <span>${w.name}</span>
+                            <span class="norma-badge">今日: ${safeNorma}P</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: ${percent}%"></div></div>
+                        <div style="font-size: 0.7rem; color: #64748b; text-align: right;">あと ${remaining}P / 全 ${w.totalPages}P</div>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="input-${w.id}" placeholder="やったP数">
+                        <button onclick="updateProgress(${w.id})">記録</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        document.getElementById('total-norma').innerText = totalNorma;
+    }
+
+    function resetPlan() {
+        if(confirm("本当にリセットしていい？")) { localStorage.removeItem('test_mikata_data'); plan = null; render(); }
+    }
+
+    render();
+</script>
+</body>
+</html>
