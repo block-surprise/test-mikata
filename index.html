@@ -15,7 +15,19 @@
         h1 { margin: 0; font-size: 1.2rem; }
 
         /* ナビゲーション */
-        nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #ddd; z-index: 1000; height: 60px; }
+       nav { 
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    width: 100%; 
+    background: white; 
+    display: flex; 
+    justify-content: space-around; 
+    padding: 10px 0; 
+    border-top: 1px solid #ddd; 
+    z-index: 1000; 
+    height: 60px; 
+}
         .nav-item { color: #94a3b8; text-align: center; font-size: 0.7rem; cursor: pointer; flex: 1; }
         .nav-item.active { color: var(--primary); }
         .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 2px; }
@@ -47,6 +59,24 @@
         .color-dot.selected { border-color: #431407; }
 
         .archive-card { border-left: 5px solid #94a3b8; }
+
+        @media (min-width: 768px) {
+    nav { 
+        bottom: auto; /* 下固定を解除 */
+        top: 0;       /* 上固定に変更 */
+        border-top: none; 
+        border-bottom: 1px solid #ddd; 
+        justify-content: center; 
+        gap: 50px; /* アイコン同士の間隔を広げる */
+    }
+            body { 
+        padding-bottom: 0; 
+        padding-top: 70px; 
+    }
+            header {
+        margin-top: 10px;
+    }
+}
     </style>
 </head>
 <body>
